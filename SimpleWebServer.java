@@ -56,11 +56,16 @@ public class SimpleWebServer {
             the user is requesting */
          serveFile(osw, pathname);
       } else if (command.equals("PUT")) {
+         /* if the request is a PUT
+            try to store the file
+            and log the entry */
         storeFile(br, osw, pathname);
         record = getTimeStamp();
-        logEntry(filename, record);
+        String log = logEntry(filename, record);
+        /* place the log somewhere */
+        ows.write(log);
       } else {
-        /* if the request is NOT a GET
+        /* if the request is NOT a GET or a PUT
            return an error saying this server
            does not implement the requested command */
          osw.write("HTTP/1.0 501 Not Implemented\n\n");
@@ -71,7 +76,8 @@ public class SimpleWebServer {
       osw.close();
     }
 
-    public void serveFile(OutputStreamWriter osw, String pathname) throws Exception {
+    public void serveFile(OutputStreamWriter osw, String pathname)
+    throws Exception {
       FileReader fr = null;
       int c = -1;
       StringBuffer sb = new StringBuffer();
