@@ -1,4 +1,5 @@
 /* CS-361, Rogelio Zamudio Jr. */
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -62,9 +63,9 @@ public class SimpleWebServer {
             and log the entry */
         storeFile(br, osw, pathname);
         record = getTimeStamp();
-        String log = logEntry(filename, record);
+        logEntry(filename, record);
         /* place the log somewhere */
-        ows.write(log);
+
       } else {
         /* if the request is NOT a GET or a PUT
            return an error saying this server
