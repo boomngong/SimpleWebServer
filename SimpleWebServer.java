@@ -12,6 +12,10 @@ public class SimpleWebServer {
      from web clients */
   private static ServerSocket dServerSocket;
 
+  /* Declare new file name for log file, to ensure
+     writing to a different file */
+  private String logFile = "logFile.txt";
+
   public SimpleWebServer() throws Exception {
     dServerSocket = new ServerSocket (PORT);
   }
@@ -43,7 +47,6 @@ public class SimpleWebServer {
       String command = null;
       String pathname = null;
       String filename = null;
-      String record = null;
       /* parse the HTTP request */
       StringTokenizer st = new StringTokenizer(request, " ");
 
@@ -61,16 +64,21 @@ public class SimpleWebServer {
          /* if the request is a PUT
             try to store the file
             and log the entry */
-        storeFile(br, osw, pathname);
-        record = getTimeStamp();
-        logEntry(filename, record);
-        /* place the log somewhere */
 
+        storeFile(br, osw, pathname);
+        /* place the log in log file */
+        osw.write("\r\n");
+        logEntry(logFile, "PUT " + pathname);
+        osw.close();
       } else {
         /* if the request is NOT a GET or a PUT
            return an error saying this server
            does not implement the requested command */
+        /* Update this section with variables, turn
+           HTTP errors into List of Strings */
          osw.write("HTTP/1.0 501 Not Implemented\n\n");
+         logEntry(logFile, "HTTP/1.0 501 Not Implemented\n\n");
+         osw.close();
       }
 
 
@@ -134,9 +142,9 @@ public class SimpleWebServer {
     }
 
     public void logEntry(String filename, String record) throws Exception {
-      FileWriter fw = new FileWriter(filename, true);
-      fw.write(getTimeStamp() + " " + record);
-      fw.close();
+      try (FileWriter fw = new FileWriter(filename, true)) {
+          fw.write(getTimeStamp() + " " + record);
+      }
     }
 
     public String getTimeStamp() {
