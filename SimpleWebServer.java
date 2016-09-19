@@ -1,5 +1,4 @@
 /* CS-361, Rogelio Zamudio Jr. */
-package simplewebserver;
 
 import java.io.*;
 import java.net.*;
@@ -16,15 +15,17 @@ public class SimpleWebServer {
   /* Declare new file name for log file, to ensure
      writing to a different file */
   private String logFile = "logFile.txt";
+  private String errorLog = "errorLog.txt";
 
   /* Declare size limit in byte size to compare against
-     incoming files */
+     incoming files, sizes are in bytes */
+  private final long SIZE_LIMIT = 1000;
   private final long MAX_DOWNLOAD_LIMIT = 5000;
 
   /* Hardcoded values for username and password,
      which would be easy to guess */
   private String username = "admin";
-  private String password = "admin";
+  private String password = "password";
 
   public SimpleWebServer() throws Exception {
     dServerSocket = new ServerSocket (PORT);
@@ -64,10 +65,13 @@ public class SimpleWebServer {
       pathname = st.nextToken();
 
       if (command.equals("GET")) {
-         /* if the request is a GET
-            try to respond with the file
-            the user is requesting */
-         serveFile(osw, pathname);
+          /* if the request is a GET
+             try to respond with the file
+             the user is requesting */
+           serveFile(osw, pathname);
+           osw.write("\r\n");
+           logEntry(logFile, command + " " + pathname);
+           osw.close();
       } else if (command.equals("PUT")) {
          /* if the request is a PUT
             try to store the file
@@ -76,7 +80,7 @@ public class SimpleWebServer {
         storeFile(br, osw, pathname);
         /* place the log in log file */
         osw.write("\r\n");
-        logEntry(logFile, "PUT " + pathname);
+        logEntry(logFile, command + " " + pathname);
         osw.close();
       } else {
         /* if the request is NOT a GET or a PUT
@@ -111,6 +115,13 @@ public class SimpleWebServer {
       if (pathname.equals(""))
          pathname = "index.html";
 
+      /* check the file size, if it doesn't contrain
+         to limits , log and serve HTTP error */
+      if (!checkFileSize(pathname)) {
+        osw.write("HTTP/1.0 403 Forbidden\n\n");
+        logEntry(errorLog, "File requested too large to serve");
+        return;
+      }
       /* try to open the file specified by pathname */
       try {
         fr = new FileReader(checkPath(pathname));
@@ -127,9 +138,9 @@ public class SimpleWebServer {
          send the contents of the file */
       osw.write("HTTP/1.0 200 OK\n\n");
       while ((c != -1) && (sentBytes < MAX_DOWNLOAD_LIMIT)) {
-        osw.write(c);
-        sentBytes++;
-        c = fr.read();
+          osw.write(c);
+          sentBytes++;
+          c = fr.read();
       }
       osw.write(sb.toString());
     }
@@ -164,21 +175,66 @@ public class SimpleWebServer {
     private String checkPath(String pathname) throws Exception {
       File target = new File(pathname);
       File cwd = new File(System.getProperty("user.dir"));
+      File absoluteTarget = new File(pathname);
+      String abslstStr = absoluteTarget.getAbsolutePath();
       String targetStr = target.getCanonicalPath();
       String cwdStr = cwd.getCanonicalPath();
+      logEntry(logFile, abslstStr);
+      logEntry(logFile, targetStr);
       if (!targetStr.startsWith(cwdStr))
         throw new Exception("File Not Found");
       else
         return targetStr;
     }
 
+    /* This method is called to compare the size of the
+       requested file, return true if the file is smaller
+       than the limit, false otherwise. */
+    private boolean checkFileSize(String pathname) throws IOException {
+      File file = new File(pathname);
+      return file.length() <= SIZE_LIMIT;
+    }
+/*
+    private Credentials getAuthorization (BufferedReader br) {
+      try {
+        String header = null;
+        while (!(header = br.readLine()).equals("")) {
+          System.err.println (header);
+          if (header.startsWith("Authorization:")) {
+            StringTokenizer st = new StringTokenizer(header, " ");
+            st.nextToken(); // skip "Authorization"
+            st.nextToken(); // skip "Basic"
+            return new Credentials(st.nextToken());
+          }
+        }
+      } catch (Exception e) {
+      }
+      return null;
+    }
+*/
     /* This method is called when the program is run from
        the command line. */
     public static void main(String args[]) throws Exception {
 
-      /* Create SimpleWebServer object, and run it */
-      SimpleWebServer sws = new SimpleWebServer();
-      sws.run();
+        SimpleWebServer sws = new SimpleWebServer();
+        sws.run();
     }
-
 }
+/*
+class Credentials {
+    private String dUsername;
+    private String dPassword;
+    public Credentials(String authString) throws Exception {
+	authString = new String((new sun.misc.BASE64Decoder().decodeBuffer(authString)));
+	StringTokenizer st = new StringTokenizer(authString, ":");
+	dUsername = st.nextToken();
+	dPassword = st.nextToken();
+    }
+    public String getUsername() {
+	return dUsername;
+    }
+    public String getPassword() {
+	return dPassword;
+    }
+}
+*/
