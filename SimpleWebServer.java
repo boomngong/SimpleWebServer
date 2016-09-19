@@ -1,4 +1,5 @@
 /* CS-361, Rogelio Zamudio Jr. */
+package simplewebserver;
 
 import java.io.*;
 import java.net.*;
@@ -15,6 +16,15 @@ public class SimpleWebServer {
   /* Declare new file name for log file, to ensure
      writing to a different file */
   private String logFile = "logFile.txt";
+
+  /* Declare size limit in byte size to compare against
+     incoming files */
+  private final long MAX_DOWNLOAD_LIMIT = 5000;
+
+  /* Hardcoded values for username and password,
+     which would be easy to guess */
+  private String username = "admin";
+  private String password = "admin";
 
   public SimpleWebServer() throws Exception {
     dServerSocket = new ServerSocket (PORT);
@@ -52,8 +62,6 @@ public class SimpleWebServer {
 
       command = st.nextToken();
       pathname = st.nextToken();
-      filename = st.nextToken();
-
 
       if (command.equals("GET")) {
          /* if the request is a GET
@@ -90,6 +98,7 @@ public class SimpleWebServer {
     throws Exception {
       FileReader fr = null;
       int c = -1;
+      int sentBytes = 0;
       StringBuffer sb = new StringBuffer();
 
       /* remove the initial slash at the beginning
@@ -104,7 +113,7 @@ public class SimpleWebServer {
 
       /* try to open the file specified by pathname */
       try {
-        fr = new FileReader(pathname);
+        fr = new FileReader(checkPath(pathname));
         c = fr.read();
       } catch (Exception e) {
         /* if the file not found, return the
@@ -117,8 +126,9 @@ public class SimpleWebServer {
          and read, then return an OK response code and
          send the contents of the file */
       osw.write("HTTP/1.0 200 OK\n\n");
-      while (c != -1) {
-        sb.append((char)c);
+      while ((c != -1) && (sentBytes < MAX_DOWNLOAD_LIMIT)) {
+        osw.write(c);
+        sentBytes++;
         c = fr.read();
       }
       osw.write(sb.toString());
@@ -149,6 +159,17 @@ public class SimpleWebServer {
 
     public String getTimeStamp() {
       return (new Date().toString());
+    }
+
+    private String checkPath(String pathname) throws Exception {
+      File target = new File(pathname);
+      File cwd = new File(System.getProperty("user.dir"));
+      String targetStr = target.getCanonicalPath();
+      String cwdStr = cwd.getCanonicalPath();
+      if (!targetStr.startsWith(cwdStr))
+        throw new Exception("File Not Found");
+      else
+        return targetStr;
     }
 
     /* This method is called when the program is run from
