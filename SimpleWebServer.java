@@ -194,24 +194,7 @@ public class SimpleWebServer {
       File file = new File(pathname);
       return file.length() <= SIZE_LIMIT;
     }
-/*
-    private Credentials getAuthorization (BufferedReader br) {
-      try {
-        String header = null;
-        while (!(header = br.readLine()).equals("")) {
-          System.err.println (header);
-          if (header.startsWith("Authorization:")) {
-            StringTokenizer st = new StringTokenizer(header, " ");
-            st.nextToken(); // skip "Authorization"
-            st.nextToken(); // skip "Basic"
-            return new Credentials(st.nextToken());
-          }
-        }
-      } catch (Exception e) {
-      }
-      return null;
-    }
-*/
+    
     /* This method is called when the program is run from
        the command line. */
     public static void main(String args[]) throws Exception {
@@ -220,21 +203,3 @@ public class SimpleWebServer {
         sws.run();
     }
 }
-/*
-class Credentials {
-    private String dUsername;
-    private String dPassword;
-    public Credentials(String authString) throws Exception {
-	authString = new String((new sun.misc.BASE64Decoder().decodeBuffer(authString)));
-	StringTokenizer st = new StringTokenizer(authString, ":");
-	dUsername = st.nextToken();
-	dPassword = st.nextToken();
-    }
-    public String getUsername() {
-	return dUsername;
-    }
-    public String getPassword() {
-	return dPassword;
-    }
-}
-*/
