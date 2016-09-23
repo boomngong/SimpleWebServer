@@ -1,5 +1,5 @@
 /* CS-361, Rogelio Zamudio Jr. */
-
+import sun.misc.BASE64Decoder;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -25,7 +25,7 @@ public class SimpleWebServer {
   /* Hardcoded values for username and password,
      which would be easy to guess */
   private String username = "admin";
-  private String password = "password";
+  private String password = "admin";
 
   public SimpleWebServer() throws Exception {
     dServerSocket = new ServerSocket (PORT);
@@ -47,52 +47,88 @@ public class SimpleWebServer {
   public void processRequest(Socket s) throws Exception {
       /* used to read the data from the client */
       BufferedReader br =
-        new BufferedReader(new InputStreamReader(s.getInputStream()));
+        new BufferedReader(
+          new InputStreamReader(s.getInputStream()));
 
       /* used to write data to the client */
-      OutputStreamWriter osw = new OutputStreamWriter(s.getOutputStream());
+      OutputStreamWriter osw =
+        new OutputStreamWriter(s.getOutputStream());
 
       /* read the HTTP request from the client */
       String request = br.readLine();
 
-      String command = null;
-      String pathname = null;
-      String filename = null;
-      /* parse the HTTP request */
-      StringTokenizer st = new StringTokenizer(request, " ");
+      String temp = null;
+      String content = null;
+      boolean valid = false;
 
-      command = st.nextToken();
-      pathname = st.nextToken();
-
-      if (command.equals("GET")) {
-          /* if the request is a GET
-             try to respond with the file
-             the user is requesting */
-           serveFile(osw, pathname);
-           osw.write("\r\n");
-           logEntry(logFile, command + " " + pathname);
-           osw.close();
-      } else if (command.equals("PUT")) {
-         /* if the request is a PUT
-            try to store the file
-            and log the entry */
-
-        storeFile(br, osw, pathname);
-        /* place the log in log file */
-        osw.write("\r\n");
-        logEntry(logFile, command + " " + pathname);
-        osw.close();
-      } else {
-        /* if the request is NOT a GET or a PUT
-           return an error saying this server
-           does not implement the requested command */
-        /* Update this section with variables, turn
-           HTTP errors into List of Strings */
-         osw.write("HTTP/1.0 501 Not Implemented\n\n");
-         logEntry(logFile, "HTTP/1.0 501 Not Implemented\n\n");
-         osw.close();
+      while ((temp = br.readLine()) != null) {
+        if(temp.isEmpty()) {
+          break;
+        }
+        request += temp;
+        if (!temp.isEmpty()) {
+          StringTokenizer stringTokenizer = new StringTokenizer(temp, ":");
+          if (stringTokenizer.hasMoreTokens()) {
+            String key = stringTokenizer.nextToken().trim();
+            String val = stringTokenizer.nextToken().trim();
+            if (key.startsWith("Authorization") && checkLogin(val)) {
+              valid = true;
+            }
+          }
+        }
       }
 
+      if(!valid) {
+        osw.write("HTTP/1.0 401 Not Authorized\r\n");
+        osw.write("WWW-Authenticate: Basic\r\n");
+        osw.write("\r\n");
+        logEntry(logFile, "\nLogin attempted");
+        osw.close();
+        return;
+      } else {
+        String command = null;
+        String pathname = null;
+
+      try {
+        /* parse HTTP request */
+        StringTokenizer st = new StringTokenizer(request, " ");
+        command = st.nextToken();
+        pathname = st.nextToken();
+      } catch (Exception e) {
+        osw.write("HTTP/1.0 400 Bad Request\n\n");
+        osw.close();
+        return;
+      }
+
+        if (command.equals("GET")) {
+            /* if the request is a GET
+               try to respond with the file
+               the user is requesting */
+             serveFile(osw, pathname);
+             osw.write("\r\n");
+             logEntry(logFile, "\n" + command + " " + pathname);
+             osw.close();
+        } else if (command.equals("PUT")) {
+           /* if the request is a PUT
+              try to store the file
+              and log the entry */
+
+          storeFile(br, osw, pathname);
+          /* place the log in log file */
+          osw.write("\r\n");
+          logEntry(logFile, "\n" + command + " " + pathname);
+          osw.close();
+        } else {
+          /* if the request is NOT a GET or a PUT
+             return an error saying this server
+             does not implement the requested command */
+          /* Update this section with variables, turn
+             HTTP errors into List of Strings */
+           osw.write("HTTP/1.0 501 Not Implemented\n\n");
+           logEntry(logFile, "HTTP/1.0 501 Not Implemented\n\n");
+           osw.close();
+        }
+      }
 
       /* close the connection to the client */
       osw.close();
@@ -179,12 +215,30 @@ public class SimpleWebServer {
       String abslstStr = absoluteTarget.getAbsolutePath();
       String targetStr = target.getCanonicalPath();
       String cwdStr = cwd.getCanonicalPath();
-      logEntry(logFile, abslstStr);
-      logEntry(logFile, targetStr);
+      logEntry(logFile, "\n" + abslstStr);
+      logEntry(logFile, "\n" + targetStr);
       if (!targetStr.startsWith(cwdStr))
         throw new Exception("File Not Found");
       else
         return targetStr;
+    }
+
+    private boolean checkLogin(String val) {
+      try {
+        if (val == null) {
+          return false;
+        } else if (val.isEmpty()) {
+          return false;
+        }
+        val = val.substring(5).trim();
+        byte[] credentials = new BASE64Decoder().decodeBuffer(val);
+        String temp = new String(credentials);
+        String[] s = temp.split(":");
+        return username.equals(s[0]) && password.equals(s[1]);
+      } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+      }
     }
 
     /* This method is called to compare the size of the
@@ -194,7 +248,7 @@ public class SimpleWebServer {
       File file = new File(pathname);
       return file.length() <= SIZE_LIMIT;
     }
-    
+
     /* This method is called when the program is run from
        the command line. */
     public static void main(String args[]) throws Exception {

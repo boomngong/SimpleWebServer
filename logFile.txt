@@ -1,4 +1,28 @@
-Sat Sep 17 18:05:55 CDT 2016 GET /
-Sat Sep 17 18:11:35 CDT 2016 HTTP/1.0 501 Not Implemented
-
-
+Thu Sep 22 18:12:42 CDT 2016 
+/Users/RogelioZamudio/workspace/secureprogramming/SimpleWebServer/index.htmlThu Sep 22 18:12:42 CDT 2016 
+/Users/RogelioZamudio/workspace/secureprogramming/SimpleWebServer/index.htmlThu Sep 22 18:12:42 CDT 2016 
+GET /Thu Sep 22 18:41:24 CDT 2016 
+Login attemptedThu Sep 22 18:41:28 CDT 2016 
+Login attemptedThu Sep 22 18:41:31 CDT 2016 
+Login attemptedThu Sep 22 18:41:35 CDT 2016 
+Login attemptedThu Sep 22 18:41:41 CDT 2016 
+Login attemptedThu Sep 22 18:41:53 CDT 2016 
+Login attemptedThu Sep 22 18:43:43 CDT 2016 
+Login attemptedThu Sep 22 18:43:46 CDT 2016 
+Login attemptedThu Sep 22 18:43:48 CDT 2016 
+Login attemptedThu Sep 22 18:43:51 CDT 2016 
+Login attemptedThu Sep 22 18:43:55 CDT 2016 
+Login attemptedThu Sep 22 18:44:01 CDT 2016 
+Login attemptedThu Sep 22 18:44:03 CDT 2016 
+Login attemptedThu Sep 22 18:44:05 CDT 2016 
+Login attemptedThu Sep 22 18:44:07 CDT 2016 
+Login attemptedThu Sep 22 18:46:57 CDT 2016 
+Login attemptedThu Sep 22 18:47:00 CDT 2016 
+Login attemptedThu Sep 22 18:47:02 CDT 2016 
+Login attemptedThu Sep 22 18:47:04 CDT 2016 
+Login attemptedThu Sep 22 18:47:08 CDT 2016 
+Login attemptedThu Sep 22 18:51:37 CDT 2016 
+Login attemptedThu Sep 22 18:51:40 CDT 2016 
+/Users/RogelioZamudio/workspace/secureprogramming/SimpleWebServer/index.htmlThu Sep 22 18:51:40 CDT 2016 
+/Users/RogelioZamudio/workspace/secureprogramming/SimpleWebServer/index.htmlThu Sep 22 18:51:40 CDT 2016 
+GET /index.html
